@@ -10,9 +10,9 @@ type MeseData = {
   mese: number;
   nomeMese: string;
   target: number;
-  actual: number;
   computed: number;
-  effettivo: number | null;
+  altro: number | null;
+  actual: number;
   diff: number;
   pct: number;
 };
@@ -44,7 +44,7 @@ export default function ObiettiviView({ userId }: { userId: string }) {
     const values: Record<string, number> = {};
     sede.mesi.forEach((m) => {
       values[`t_${sede.sedeId}_${m.mese}`] = m.target;
-      values[`e_${sede.sedeId}_${m.mese}`] = m.effettivo ?? m.computed;
+      values[`a_${sede.sedeId}_${m.mese}`] = m.altro ?? 0;
     });
     setEditValues(values);
     setEditing(sede.sedeId);
@@ -55,12 +55,12 @@ export default function ObiettiviView({ userId }: { userId: string }) {
     setEditValues({});
   };
 
-  const saveTargets = async (sede: SedeData) => {
+  const saveData = async (sede: SedeData) => {
     setSaving(true);
     const targets = sede.mesi.map((m) => ({
       mese: m.mese,
       target: editValues[`t_${sede.sedeId}_${m.mese}`] || 0,
-      effettivo: editValues[`e_${sede.sedeId}_${m.mese}`] || 0,
+      altro: editValues[`a_${sede.sedeId}_${m.mese}`] || 0,
     }));
     const res = await fetch("/api/obiettivi", {
       method: "PUT",
@@ -138,6 +138,7 @@ export default function ObiettiviView({ userId }: { userId: string }) {
                   <tr className="border-b border-slate-100 bg-slate-50/50">
                     <th className="text-left py-3 px-4 font-semibold text-slate-600">Mese</th>
                     <th className="text-right py-3 px-4 font-semibold text-slate-600">Target</th>
+                    <th className="text-right py-3 px-4 font-semibold text-slate-600">Importo da altro</th>
                     <th className="text-right py-3 px-4 font-semibold text-slate-600">Consuntivo</th>
                     <th className="text-right py-3 px-4 font-semibold text-slate-600">Differenza</th>
                     <th className="text-right py-3 px-4 font-semibold text-slate-600">%</th>
@@ -166,16 +167,17 @@ export default function ObiettiviView({ userId }: { userId: string }) {
                           {isEditing ? (
                             <Input
                               type="number"
-                              value={editValues[`e_${sede.sedeId}_${m.mese}`] || 0}
-                              onChange={(e) => setEditValues({ ...editValues, [`e_${sede.sedeId}_${m.mese}`]: parseFloat(e.target.value) || 0 })}
+                              value={editValues[`a_${sede.sedeId}_${m.mese}`] || 0}
+                              onChange={(e) => setEditValues({ ...editValues, [`a_${sede.sedeId}_${m.mese}`]: parseFloat(e.target.value) || 0 })}
                               className="w-28 h-8 text-right text-sm ml-auto"
                             />
                           ) : (
-                            <span className={`font-medium ${m.actual > 0 ? "text-slate-800" : "text-slate-400"}`}>
-                              {euro(m.actual)}{m.effettivo !== null ? "*" : ""}
+                            <span className={`font-medium ${m.altro ? "text-amber-600" : "text-slate-400"}`}>
+                              {m.altro ? euro(m.altro) : "-"}
                             </span>
                           )}
                         </td>
+                        <td className="py-3 px-4 text-right font-medium text-slate-800">{euro(m.actual)}</td>
                         <td className={`py-3 px-4 text-right font-medium ${diffColor}`}>{m.diff >= 0 ? "+" : ""}{euro(m.diff)}</td>
                         <td className={`py-3 px-4 text-right font-medium ${pctColor}`}>
                           {m.target > 0 ? `${m.pct >= 0 ? "+" : ""}${m.pct.toFixed(1)}%` : "-"}
@@ -188,6 +190,9 @@ export default function ObiettiviView({ userId }: { userId: string }) {
                   <tr className="bg-slate-100/70 font-bold text-slate-700">
                     <td className="py-3 px-4">TOTALE</td>
                     <td className="py-3 px-4 text-right">{euro(sede.annualTarget)}</td>
+                    <td className="py-3 px-4 text-right text-amber-600">
+                      {euro(sede.mesi.reduce((s, m) => s + (m.altro || 0), 0))}
+                    </td>
                     <td className="py-3 px-4 text-right">{euro(sede.annualActual)}</td>
                     <td className={`py-3 px-4 text-right ${sede.annualActual - sede.annualTarget >= 0 ? "text-emerald-600" : "text-red-500"}`}>
                       {sede.annualActual - sede.annualTarget >= 0 ? "+" : ""}{euro(sede.annualActual - sede.annualTarget)}
@@ -198,11 +203,6 @@ export default function ObiettiviView({ userId }: { userId: string }) {
                   </tr>
                 </tfoot>
               </table>
-              {!isEditing && sede.mesi.some((m) => m.effettivo !== null) && (
-                <div className="px-4 pb-2 text-[11px] text-slate-400 italic text-right">
-                  * importo inserito manualmente
-                </div>
-              )}
             </div>
 
             <div className="p-4 border-t border-slate-100 flex justify-end gap-2">
@@ -211,7 +211,7 @@ export default function ObiettiviView({ userId }: { userId: string }) {
                   <Button variant="outline" size="sm" onClick={cancelEditing} className="rounded-xl">
                     <X className="w-4 h-4 mr-1" /> Annulla
                   </Button>
-                  <Button size="sm" onClick={() => saveTargets(sede)} disabled={saving} className="rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0">
+                  <Button size="sm" onClick={() => saveData(sede)} disabled={saving} className="rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0">
                     <Save className="w-4 h-4 mr-1" /> {saving ? "Salvataggio..." : "Salva"}
                   </Button>
                 </>
@@ -228,7 +228,7 @@ export default function ObiettiviView({ userId }: { userId: string }) {
       {data.length > 0 && data.every((s) => s.annualTarget === 0) && (
         <div className="flex items-center gap-2 p-4 bg-amber-50 rounded-xl text-amber-700 text-sm border border-amber-200">
           <AlertTriangle className="w-5 h-5 flex-shrink-0" />
-          <span>Inserisci target e consuntivo mensili per ogni sede usando il pulsante "Modifica".</span>
+          <span>Inserisci target e importo da altro per ogni sede usando il pulsante "Modifica".</span>
         </div>
       )}
     </div>

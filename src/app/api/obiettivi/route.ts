@@ -44,24 +44,24 @@ export async function GET(request: Request) {
   }
 
   const result = sedi.map((sede) => {
-    const obiettivoMap: Record<number, { target: number; effettivo: number | null }> = {};
-    sede.obiettivi.forEach((o) => { obiettivoMap[o.mese] = { target: o.target, effettivo: o.effettivo }; });
+    const obiettivoMap: Record<number, { target: number; altro: number | null }> = {};
+    sede.obiettivi.forEach((o) => { obiettivoMap[o.mese] = { target: o.target, altro: o.altro }; });
 
     const mesi = Array.from({ length: 12 }, (_, i) => {
       const m = i + 1;
       const target = obiettivoMap[m]?.target || 0;
-      const manualEff = obiettivoMap[m]?.effettivo;
+      const altro = obiettivoMap[m]?.altro ?? null;
       const computed = computedByMonth[sede.id]?.[m] || 0;
-      const actual = manualEff !== null && manualEff !== undefined ? manualEff : computed;
+      const actual = computed + (altro ?? 0);
       const diff = actual - target;
       const pct = target > 0 ? ((actual / target) - 1) * 100 : 0;
       return {
         mese: m,
         nomeMese: monthNames[i],
         target,
-        actual,
         computed,
-        effettivo: manualEff,
+        altro,
+        actual,
         diff,
         pct: Math.round(pct * 100) / 100,
       };
@@ -98,19 +98,13 @@ export async function PUT(request: Request) {
   }
 
   for (const t of targets) {
+    const data: any = { target: t.target };
+    if (t.altro !== undefined) data.altro = t.altro;
+
     await prisma.obiettivo.upsert({
       where: { sedeId_anno_mese: { sedeId, anno, mese: t.mese } },
-      update: {
-        target: t.target,
-        ...(t.effettivo !== undefined ? { effettivo: t.effettivo } : {}),
-      },
-      create: {
-        sedeId,
-        anno,
-        mese: t.mese,
-        target: t.target,
-        ...(t.effettivo !== undefined ? { effettivo: t.effettivo } : {}),
-      },
+      update: data,
+      create: { sedeId, anno, mese: t.mese, ...data },
     });
   }
 
