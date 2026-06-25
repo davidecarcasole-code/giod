@@ -81,6 +81,7 @@ model Sede {
   provenienze  Provenienza[]
   modPagamenti ModPagamento[]
   listItems    ListItem[]
+  obiettivi    Obiettivo[]
 
   @@map("sede")
 }
@@ -131,6 +132,20 @@ model ListItem {
   createdAt DateTime @default(now())
 
   @@map("list_item")
+}
+
+model Obiettivo {
+  id        String   @id @default(cuid())
+  sedeId    String
+  sede      Sede     @relation(fields: [sedeId], references: [id], onDelete: Cascade)
+  anno      Int
+  mese      Int
+  target    Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([sedeId, anno, mese])
+  @@map("obiettivo")
 }
 
 model Patient {

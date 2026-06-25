@@ -89,8 +89,8 @@ export default function LoginPage() {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-white/5 rounded-full" />
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-8">
-              <div className="p-2 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg">
-                <img src="/logo.png" alt="GioDental" className="h-10 w-auto" />
+              <div className="p-1.5 rounded-xl">
+                <img src="/logo.png" alt="GioDental" className="h-11 w-auto brightness-0 invert drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" />
               </div>
             </div>
             <div className="space-y-4">

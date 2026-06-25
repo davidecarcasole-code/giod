@@ -14,6 +14,7 @@ import {
   TrendingUp,
   ChevronRight,
   UserCircle,
+  Target,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -145,6 +146,9 @@ export function Sidebar({
         </NavLink>
         <NavLink href="/dashboard/opportunita" icon={TrendingUp}>
           Opportunit&agrave;
+        </NavLink>
+        <NavLink href="/dashboard/obiettivi" icon={Target}>
+          Obiettivi
         </NavLink>
 
         <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest px-3 pt-5 pb-2">
