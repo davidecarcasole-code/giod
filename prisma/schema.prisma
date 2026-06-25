@@ -141,6 +141,7 @@ model Obiettivo {
   anno      Int
   mese      Int
   target    Float
+  effettivo Float?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

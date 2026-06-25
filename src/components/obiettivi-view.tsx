@@ -1,19 +1,18 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Pencil, Save, X, TrendingUp, AlertTriangle } from "lucide-react";
-
-const MONTHS = ["GENNAIO", "FEBBRAIO", "MARZO", "APRILE", "MAGGIO", "GIUGNO", "LUGLIO", "AGOSTO", "SETTEMBRE", "OTTOBRE", "NOVEMBRE", "DICEMBRE"];
 
 type MeseData = {
   mese: number;
   nomeMese: string;
   target: number;
   actual: number;
+  computed: number;
+  effettivo: number | null;
   diff: number;
   pct: number;
 };
@@ -29,24 +28,24 @@ type SedeData = {
 export default function ObiettiviView({ userId }: { userId: string }) {
   const [data, setData] = useState<SedeData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedSede, setSelectedSede] = useState<string>("all");
   const [editing, setEditing] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<Record<string, number>>({});
   const [saving, setSaving] = useState(false);
-  const router = useRouter();
+
   const fetchData = useCallback(async () => {
-    const params = new URLSearchParams({ anno: "2026" });
-    if (selectedSede !== "all") params.set("sede", selectedSede);
-    const res = await fetch(`/api/obiettivi?${params}`);
+    const res = await fetch("/api/obiettivi?anno=2026");
     if (res.ok) setData(await res.json());
     setLoading(false);
-  }, [selectedSede]);
+  }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const startEditing = (sede: SedeData) => {
     const values: Record<string, number> = {};
-    sede.mesi.forEach((m) => { values[`${sede.sedeId}_${m.mese}`] = m.target; });
+    sede.mesi.forEach((m) => {
+      values[`t_${sede.sedeId}_${m.mese}`] = m.target;
+      values[`e_${sede.sedeId}_${m.mese}`] = m.effettivo ?? m.computed;
+    });
     setEditValues(values);
     setEditing(sede.sedeId);
   };
@@ -60,7 +59,8 @@ export default function ObiettiviView({ userId }: { userId: string }) {
     setSaving(true);
     const targets = sede.mesi.map((m) => ({
       mese: m.mese,
-      target: editValues[`${sede.sedeId}_${m.mese}`] || 0,
+      target: editValues[`t_${sede.sedeId}_${m.mese}`] || 0,
+      effettivo: editValues[`e_${sede.sedeId}_${m.mese}`] || 0,
     }));
     const res = await fetch("/api/obiettivi", {
       method: "PUT",
@@ -68,7 +68,7 @@ export default function ObiettiviView({ userId }: { userId: string }) {
       body: JSON.stringify({ sedeId: sede.sedeId, anno: 2026, targets }),
     });
     if (res.ok) {
-      toast.success("Target salvati");
+      toast.success("Dati salvati");
       setEditing(null);
       fetchData();
     } else {
@@ -154,15 +154,28 @@ export default function ObiettiviView({ userId }: { userId: string }) {
                           {isEditing ? (
                             <Input
                               type="number"
-                              value={editValues[`${sede.sedeId}_${m.mese}`] || 0}
-                              onChange={(e) => setEditValues({ ...editValues, [`${sede.sedeId}_${m.mese}`]: parseFloat(e.target.value) || 0 })}
+                              value={editValues[`t_${sede.sedeId}_${m.mese}`] || 0}
+                              onChange={(e) => setEditValues({ ...editValues, [`t_${sede.sedeId}_${m.mese}`]: parseFloat(e.target.value) || 0 })}
                               className="w-28 h-8 text-right text-sm ml-auto"
                             />
                           ) : (
                             <span className="font-medium text-slate-800">{euro(m.target)}</span>
                           )}
                         </td>
-                        <td className={`py-3 px-4 text-right font-medium ${m.actual > 0 ? "text-slate-800" : "text-slate-400"}`}>{euro(m.actual)}</td>
+                        <td className="py-3 px-4 text-right">
+                          {isEditing ? (
+                            <Input
+                              type="number"
+                              value={editValues[`e_${sede.sedeId}_${m.mese}`] || 0}
+                              onChange={(e) => setEditValues({ ...editValues, [`e_${sede.sedeId}_${m.mese}`]: parseFloat(e.target.value) || 0 })}
+                              className="w-28 h-8 text-right text-sm ml-auto"
+                            />
+                          ) : (
+                            <span className={`font-medium ${m.actual > 0 ? "text-slate-800" : "text-slate-400"}`}>
+                              {euro(m.actual)}{m.effettivo !== null ? "*" : ""}
+                            </span>
+                          )}
+                        </td>
                         <td className={`py-3 px-4 text-right font-medium ${diffColor}`}>{m.diff >= 0 ? "+" : ""}{euro(m.diff)}</td>
                         <td className={`py-3 px-4 text-right font-medium ${pctColor}`}>
                           {m.target > 0 ? `${m.pct >= 0 ? "+" : ""}${m.pct.toFixed(1)}%` : "-"}
@@ -185,24 +198,29 @@ export default function ObiettiviView({ userId }: { userId: string }) {
                   </tr>
                 </tfoot>
               </table>
+              {!isEditing && sede.mesi.some((m) => m.effettivo !== null) && (
+                <div className="px-4 pb-2 text-[11px] text-slate-400 italic text-right">
+                  * importo inserito manualmente
+                </div>
+              )}
             </div>
 
             <div className="p-4 border-t border-slate-100 flex justify-end gap-2">
-                {isEditing ? (
-                  <>
-                    <Button variant="outline" size="sm" onClick={cancelEditing} className="rounded-xl">
-                      <X className="w-4 h-4 mr-1" /> Annulla
-                    </Button>
-                    <Button size="sm" onClick={() => saveTargets(sede)} disabled={saving} className="rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0">
-                      <Save className="w-4 h-4 mr-1" /> {saving ? "Salvataggio..." : "Salva target"}
-                    </Button>
-                  </>
-                ) : (
-                  <Button variant="outline" size="sm" onClick={() => startEditing(sede)} className="rounded-xl">
-                    <Pencil className="w-4 h-4 mr-1" /> Modifica target
+              {isEditing ? (
+                <>
+                  <Button variant="outline" size="sm" onClick={cancelEditing} className="rounded-xl">
+                    <X className="w-4 h-4 mr-1" /> Annulla
                   </Button>
-                )}
-              </div>
+                  <Button size="sm" onClick={() => saveTargets(sede)} disabled={saving} className="rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0">
+                    <Save className="w-4 h-4 mr-1" /> {saving ? "Salvataggio..." : "Salva"}
+                  </Button>
+                </>
+              ) : (
+                <Button variant="outline" size="sm" onClick={() => startEditing(sede)} className="rounded-xl">
+                  <Pencil className="w-4 h-4 mr-1" /> Modifica
+                </Button>
+              )}
+            </div>
           </div>
         );
       })}
@@ -210,7 +228,7 @@ export default function ObiettiviView({ userId }: { userId: string }) {
       {data.length > 0 && data.every((s) => s.annualTarget === 0) && (
         <div className="flex items-center gap-2 p-4 bg-amber-50 rounded-xl text-amber-700 text-sm border border-amber-200">
           <AlertTriangle className="w-5 h-5 flex-shrink-0" />
-          <span>Inserisci i target mensili per ogni sede usando il pulsante "Modifica target".</span>
+          <span>Inserisci target e consuntivo mensili per ogni sede usando il pulsante "Modifica".</span>
         </div>
       )}
     </div>
