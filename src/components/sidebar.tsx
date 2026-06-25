@@ -15,6 +15,7 @@ import {
   ChevronRight,
   UserCircle,
   Target,
+  X,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -38,11 +39,13 @@ function NavLink({
   icon: Icon,
   children,
   isActive: activeCheck,
+  onClick,
 }: {
   href: string;
   icon: any;
   children: React.ReactNode;
   isActive?: boolean;
+  onClick?: () => void;
 }) {
   const pathname = usePathname();
   const active = activeCheck !== undefined ? activeCheck : pathname.startsWith(href);
@@ -50,6 +53,7 @@ function NavLink({
   return (
     <Link
       href={href}
+      onClick={onClick}
       className={`relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
         active
           ? "bg-sky-500/10 text-sky-300 font-medium"
@@ -71,12 +75,16 @@ export function Sidebar({
   userSedeName,
   allowedSedeIds,
   greeting,
+  isOpen,
+  onClose,
 }: {
   user: any;
   sedi: { id: string; name: string }[];
   userSedeName: string | null;
   allowedSedeIds?: string[] | null;
   greeting?: string;
+  isOpen?: boolean;
+  onClose?: () => void;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -92,14 +100,17 @@ export function Sidebar({
       : sedi;
 
   return (
-    <aside className="w-64 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-800 text-white flex flex-col shadow-2xl border-r border-slate-800">
+    <aside className={`w-64 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-800 text-white flex flex-col shadow-2xl border-r border-slate-800 fixed md:relative inset-y-0 left-0 z-30 transition-transform duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}>
       <div className="p-4 border-b border-slate-800">
         <div className="flex items-center gap-3">
           <img src="/logo.png" alt="GioDental" className="h-9 w-auto" />
-          <div>
+          <div className="flex-1">
             <h1 className="text-base font-bold text-white">GioDental</h1>
             <p className="text-[10px] text-slate-500 tracking-wider uppercase">Portale Vendite</p>
           </div>
+          <button onClick={onClose} className="md:hidden p-1.5 rounded-lg text-slate-500 hover:bg-slate-800 hover:text-slate-300 transition-colors">
+            <X className="w-5 h-5" />
+          </button>
         </div>
       </div>
 
@@ -111,7 +122,7 @@ export function Sidebar({
           const slug = sedeSlugMap[sede.name];
           if (!slug) return null;
           return (
-            <NavLink key={sede.id} href={`/dashboard/${slug}`} icon={LayoutDashboard}>
+            <NavLink key={sede.id} href={`/dashboard/${slug}`} icon={LayoutDashboard} onClick={onClose}>
               {sede.name}
             </NavLink>
           );
@@ -122,7 +133,7 @@ export function Sidebar({
             <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest px-3 pt-5 pb-2">
               Supervisor
             </p>
-            <NavLink href="/dashboard/supervisor" icon={Users}>
+            <NavLink href="/dashboard/supervisor" icon={Users} onClick={onClose}>
               Panoramica Generale
             </NavLink>
           </>
@@ -131,33 +142,34 @@ export function Sidebar({
         <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest px-3 pt-5 pb-2">
           Azioni
         </p>
-        <NavLink href="/dashboard/pazienti/new" icon={UserPlus}>
+        <NavLink href="/dashboard/pazienti/new" icon={UserPlus} onClick={onClose}>
           Nuovo Paziente
         </NavLink>
         <NavLink
           href="/dashboard/pazienti"
           isActive={pathname.startsWith("/dashboard/pazienti") && !pathname.startsWith("/dashboard/pazienti/new")}
           icon={FileSpreadsheet}
+          onClick={onClose}
         >
           Tutti i Pazienti
         </NavLink>
-        <NavLink href="/dashboard/medici" icon={Stethoscope}>
+        <NavLink href="/dashboard/medici" icon={Stethoscope} onClick={onClose}>
           Medici
         </NavLink>
-        <NavLink href="/dashboard/opportunita" icon={TrendingUp}>
+        <NavLink href="/dashboard/opportunita" icon={TrendingUp} onClick={onClose}>
           Opportunit&agrave;
         </NavLink>
-        <NavLink href="/dashboard/obiettivi" icon={Target}>
+        <NavLink href="/dashboard/obiettivi" icon={Target} onClick={onClose}>
           Obiettivi
         </NavLink>
 
         <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest px-3 pt-5 pb-2">
           Gestione
         </p>
-        <NavLink href="/dashboard/admin" icon={Settings}>
+        <NavLink href="/dashboard/admin" icon={Settings} onClick={onClose}>
           Pannello Controllo
         </NavLink>
-        <NavLink href="/dashboard/settings" icon={UserCircle}>
+        <NavLink href="/dashboard/settings" icon={UserCircle} onClick={onClose}>
           Impostazioni
         </NavLink>
       </div>
