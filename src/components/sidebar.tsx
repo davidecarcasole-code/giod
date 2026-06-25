@@ -13,6 +13,7 @@ import {
   Stethoscope,
   TrendingUp,
   ChevronRight,
+  UserCircle,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -21,6 +22,8 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { Avatar } from "@/components/avatar";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 
 const sedeSlugMap: Record<string, string> = {
   LATINA: "latina",
@@ -150,15 +153,16 @@ export function Sidebar({
         <NavLink href="/dashboard/admin" icon={Settings}>
           Pannello Controllo
         </NavLink>
+        <NavLink href="/dashboard/settings" icon={UserCircle}>
+          Impostazioni
+        </NavLink>
       </div>
 
       <div className="p-3 border-t border-slate-800">
         <DropdownMenu>
           <DropdownMenuTrigger className="w-full">
             <div className="w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm cursor-pointer hover:bg-slate-800/50 transition-colors group">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sky-500 to-cyan-400 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-sm">
-                {user.name?.charAt(0)?.toUpperCase() || "U"}
-              </div>
+              <Avatar src={user.image} name={user.name} size="md" />
               <div className="truncate text-left flex-1">
                 <p className="truncate text-slate-200 text-sm font-medium">
                   {user.name || user.email}
@@ -172,6 +176,15 @@ export function Sidebar({
             <DropdownMenuItem className="text-xs text-slate-400 focus:bg-slate-800 focus:text-slate-200">
               {user.email}
             </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-slate-800" />
+            <DropdownMenuItem render={<Link href="/dashboard/settings" />}>
+              <UserCircle className="w-4 h-4 mr-2" />
+              Impostazioni
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-slate-800" />
+            <div className="px-3 py-2">
+              <ThemeSwitcher />
+            </div>
             <DropdownMenuSeparator className="bg-slate-800" />
             <DropdownMenuItem
               onClick={handleLogout}

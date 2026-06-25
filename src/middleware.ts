@@ -16,7 +16,7 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const sessionCookie = request.cookies.get("better-auth.session_token")?.value;
+  const sessionCookie = request.cookies.get("better-auth.session_token")?.value || request.cookies.get("__Secure-better-auth.session_token")?.value;
   if (!sessionCookie) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";

@@ -119,6 +119,77 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+[data-accent="teal"] {
+  --primary: oklch(0.5 0.15 170);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.55 0.12 150);
+  --ring: oklch(0.5 0.15 170);
+  --sidebar-primary: oklch(0.5 0.15 170);
+  --chart-1: oklch(0.5 0.15 170);
+  --chart-2: oklch(0.55 0.12 150);
+}
+[data-accent="violet"] {
+  --primary: oklch(0.55 0.18 280);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.58 0.12 260);
+  --ring: oklch(0.55 0.18 280);
+  --sidebar-primary: oklch(0.55 0.18 280);
+  --chart-1: oklch(0.55 0.18 280);
+  --chart-2: oklch(0.58 0.12 260);
+}
+[data-accent="rose"] {
+  --primary: oklch(0.55 0.18 10);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.58 0.12 350);
+  --ring: oklch(0.55 0.18 10);
+  --sidebar-primary: oklch(0.55 0.18 10);
+  --chart-1: oklch(0.55 0.18 10);
+  --chart-2: oklch(0.58 0.12 350);
+}
+[data-accent="amber"] {
+  --primary: oklch(0.6 0.18 60);
+  --primary-foreground: oklch(0.15 0.02 240);
+  --secondary: oklch(0.58 0.12 45);
+  --ring: oklch(0.6 0.18 60);
+  --sidebar-primary: oklch(0.6 0.18 60);
+  --chart-1: oklch(0.6 0.18 60);
+  --chart-2: oklch(0.58 0.12 45);
+}
+
+.dark[data-accent="teal"] {
+  --primary: oklch(0.6 0.15 170);
+  --secondary: oklch(0.45 0.1 150);
+  --ring: oklch(0.6 0.15 170);
+  --sidebar-primary: oklch(0.6 0.15 170);
+  --chart-1: oklch(0.6 0.15 170);
+  --chart-2: oklch(0.5 0.1 150);
+}
+.dark[data-accent="violet"] {
+  --primary: oklch(0.62 0.18 280);
+  --secondary: oklch(0.5 0.12 260);
+  --ring: oklch(0.62 0.18 280);
+  --sidebar-primary: oklch(0.62 0.18 280);
+  --chart-1: oklch(0.62 0.18 280);
+  --chart-2: oklch(0.5 0.12 260);
+}
+.dark[data-accent="rose"] {
+  --primary: oklch(0.62 0.18 10);
+  --secondary: oklch(0.5 0.12 350);
+  --ring: oklch(0.62 0.18 10);
+  --sidebar-primary: oklch(0.62 0.18 10);
+  --chart-1: oklch(0.62 0.18 10);
+  --chart-2: oklch(0.5 0.12 350);
+}
+.dark[data-accent="amber"] {
+  --primary: oklch(0.65 0.18 60);
+  --primary-foreground: oklch(0.15 0.02 240);
+  --secondary: oklch(0.55 0.12 45);
+  --ring: oklch(0.65 0.18 60);
+  --sidebar-primary: oklch(0.65 0.18 60);
+  --chart-1: oklch(0.65 0.18 60);
+  --chart-2: oklch(0.55 0.12 45);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

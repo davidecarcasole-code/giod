@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Trash2, Upload, Download, Pencil, X, Check, Stethoscope } from "lucide-react";
+import { Plus, Trash2, Upload, Download, Pencil, X, Check, Stethoscope, KeyRound, UserPlus, Shield, Building2 } from "lucide-react";
 import Link from "next/link";
 
 const selectClass = "flex h-9 w-full rounded-lg border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
@@ -26,6 +27,15 @@ export function AdminPanel({ userRole, userSedeId, sedi: serverSedi, allowedSede
   const [loading, setLoading] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
   const [importResult, setImportResult] = useState<any>(null);
+
+  const [users, setUsers] = useState<any[]>([]);
+  const [newUserName, setNewUserName] = useState("");
+  const [newUserEmail, setNewUserEmail] = useState("");
+  const [newUserPassword, setNewUserPassword] = useState("");
+  const [newUserRole, setNewUserRole] = useState("user");
+  const [newUserSede, setNewUserSede] = useState("");
+  const [resetPwTarget, setResetPwTarget] = useState<any>(null);
+  const [resetPwPassword, setResetPwPassword] = useState("");
 
   const loadSedi = async () => {
     try {
@@ -184,6 +194,85 @@ export function AdminPanel({ userRole, userSedeId, sedi: serverSedi, allowedSede
     setImportLoading(false);
   };
 
+  const loadUsers = async () => {
+    try {
+      const u = await fetch("/api/users").then(r => { if (!r.ok) throw new Error("Errore"); return r.json(); });
+      setUsers(u);
+    } catch { setUsers([]); }
+  };
+
+  useEffect(() => { if (!isUser) loadUsers(); }, []);
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newUserEmail || !newUserPassword) { toast.error("Email e password richieste"); return; }
+    setLoading(true);
+    try {
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newUserName || newUserEmail.split("@")[0],
+          email: newUserEmail,
+          password: newUserPassword,
+          role: newUserRole,
+          sedeName: newUserSede || undefined,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Errore");
+      }
+      toast.success("Utente creato");
+      setNewUserName(""); setNewUserEmail(""); setNewUserPassword(""); setNewUserRole("user"); setNewUserSede("");
+      await loadUsers();
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+    setLoading(false);
+  };
+
+  const handleUpdateUser = async (userId: string, updates: any) => {
+    try {
+      const res = await fetch("/api/users", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, ...updates }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Errore");
+      }
+      toast.success("Utente aggiornato");
+      await loadUsers();
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!resetPwTarget || !resetPwPassword) return;
+    if (resetPwPassword.length < 6) { toast.error("Password troppo corta (min 6 caratteri)"); return; }
+    setLoading(true);
+    try {
+      const res = await fetch("/api/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: resetPwTarget.id, newPassword: resetPwPassword }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Errore");
+      }
+      toast.success("Password reimpostata");
+      setResetPwTarget(null);
+      setResetPwPassword("");
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+    setLoading(false);
+  };
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-rose-600 via-pink-500 to-orange-400 p-6 text-white shadow-lg">
@@ -200,6 +289,7 @@ export function AdminPanel({ userRole, userSedeId, sedi: serverSedi, allowedSede
       <Tabs defaultValue="liste">
         <TabsList>
           <TabsTrigger value="liste">Liste</TabsTrigger>
+          {!isUser && <TabsTrigger value="utenti"><UserPlus className="w-4 h-4 mr-1" />Utenti</TabsTrigger>}
           {!isUser && <TabsTrigger value="import">Import/Export</TabsTrigger>}
         </TabsList>
 
@@ -355,6 +445,133 @@ export function AdminPanel({ userRole, userSedeId, sedi: serverSedi, allowedSede
             </Card>
           </div>
         </TabsContent>
+
+        {!isUser && (
+          <TabsContent value="utenti" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Crea Nuovo Utente</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleCreateUser} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Nome</Label>
+                    <Input placeholder="Nome" value={newUserName} onChange={e => setNewUserName(e.target.value)} className="h-9 text-sm" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Email *</Label>
+                    <Input placeholder="email@esempio.it" value={newUserEmail} onChange={e => setNewUserEmail(e.target.value)} required className="h-9 text-sm" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Password *</Label>
+                    <Input type="password" placeholder="Password" value={newUserPassword} onChange={e => setNewUserPassword(e.target.value)} required className="h-9 text-sm" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Ruolo</Label>
+                    <select value={newUserRole} onChange={e => setNewUserRole(e.target.value)} className={selectClass}>
+                      <option value="user">User</option>
+                      <option value="supervisor">Supervisor</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Sede</Label>
+                    <select value={newUserSede} onChange={e => setNewUserSede(e.target.value)} className={selectClass}>
+                      <option value="">Nessuna</option>
+                      {sedi.map((s: any) => <option key={s.id} value={s.name}>{s.name}</option>)}
+                    </select>
+                  </div>
+                  <div className="md:col-span-2 lg:col-span-5 flex justify-end mt-1">
+                    <Button type="submit" disabled={loading}>
+                      <UserPlus className="w-4 h-4 mr-1" /> Crea Utente
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Gestione Utenti</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b text-left text-muted-foreground">
+                        <th className="pb-2 font-medium">Nome</th>
+                        <th className="pb-2 font-medium">Email</th>
+                        <th className="pb-2 font-medium">Ruolo</th>
+                        <th className="pb-2 font-medium">Sede</th>
+                        <th className="pb-2 font-medium text-right">Azioni</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map((u: any) => (
+                        <tr key={u.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
+                          <td className="py-2 pr-3">{u.name || "—"}</td>
+                          <td className="py-2 pr-3 text-muted-foreground">{u.email}</td>
+                          <td className="py-2 pr-3">
+                            <select
+                              value={u.role}
+                              onChange={e => handleUpdateUser(u.id, { role: e.target.value })}
+                              className="h-8 text-xs rounded-lg border border-input bg-transparent px-2"
+                            >
+                              <option value="user">User</option>
+                              <option value="supervisor">Supervisor</option>
+                              <option value="admin">Admin</option>
+                            </select>
+                          </td>
+                          <td className="py-2 pr-3">
+                            <select
+                              value={u.sedeId || ""}
+                              onChange={e => handleUpdateUser(u.id, { sedeId: e.target.value || null })}
+                              className="h-8 text-xs rounded-lg border border-input bg-transparent px-2 max-w-[140px]"
+                            >
+                              <option value="">—</option>
+                              {sedi.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                            </select>
+                          </td>
+                          <td className="py-2 text-right">
+                            <Dialog open={resetPwTarget?.id === u.id} onOpenChange={open => { if (!open) setResetPwTarget(null); }}>
+                              <DialogTrigger render={<Button variant="ghost" size="sm" onClick={() => { setResetPwTarget(u); setResetPwPassword(""); }} />}>
+                                <KeyRound className="w-4 h-4" />
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Reset Password - {resetPwTarget?.name || resetPwTarget?.email}</DialogTitle>
+                                </DialogHeader>
+                                <div className="space-y-4 pt-2">
+                                  <div className="space-y-2">
+                                    <Label>Nuova Password</Label>
+                                    <Input
+                                      type="password"
+                                      value={resetPwPassword}
+                                      onChange={e => setResetPwPassword(e.target.value)}
+                                      placeholder="Minimo 6 caratteri"
+                                    />
+                                  </div>
+                                  <Button onClick={handleResetPassword} disabled={loading} className="w-full">
+                                    <KeyRound className="w-4 h-4 mr-1" /> Reimposta Password
+                                  </Button>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          </td>
+                        </tr>
+                      ))}
+                      {users.length === 0 && (
+                        <tr>
+                          <td colSpan={5} className="py-8 text-center text-muted-foreground">Nessun utente trovato</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
 
         {!isUser && (
           <TabsContent value="import" className="space-y-6">

@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
@@ -14,33 +13,77 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [images, setImages] = useState<string[]>([]);
+  const [current, setCurrent] = useState(0);
+  const [prev, setPrev] = useState<number | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    fetch("/api/bing-wallpapers")
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data)) setImages(data.map((i: any) => i.url));
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (images.length < 2) return;
+    intervalRef.current = setInterval(() => {
+      setPrev(prev => {
+        setCurrent(c => (c + 1) % images.length);
+        return prev !== null ? (prev + 1) % images.length : 0;
+      });
+    }, 15000);
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [images.length]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { data, error } = await authClient.signIn.email({
-      email,
-      password,
-    });
-    if (error) {
-      toast.error(error.message || "Errore di accesso");
-    } else {
-      router.push("/dashboard");
+    try {
+      const { data, error } = await authClient.signIn.email({
+        email,
+        password,
+      });
+      if (error) {
+        toast.error(error.message || "Errore di accesso");
+      } else {
+        router.push("/dashboard");
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Errore di connessione");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-sky-50 via-blue-50 to-cyan-50">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(14,165,233,0.08),transparent_50%)] bg-[radial-gradient(ellipse_at_bottom_right,rgba(20,184,166,0.08),transparent_50%)]" />
-      <div className="absolute inset-0" style={{
-        backgroundImage: `url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMjAgM2wxNyA5djE2TDIwIDM3IDMgMjhWMTJ6IiBmaWxsPSJub25lIiBzdHJva2U9InJnYmEoMTQsMTY1LDIzMywwLjA0KSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9zdmc+")`,
-        backgroundSize: "60px 60px",
-        opacity: 0.5
-      }} />
-      <div className="flex w-[900px] max-w-[95vw] min-h-[500px] rounded-2xl overflow-hidden shadow-2xl bg-white/80 backdrop-blur-sm border border-sky-100/50">
-        <div className="hidden md:flex w-1/2 bg-gradient-to-br from-sky-500 via-blue-500 to-cyan-400 p-10 flex-col justify-between relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-black">
+      {images.length > 0 && (
+        <div className="absolute inset-0">
+          {images.map((url, i) => (
+            <div
+              key={url}
+              className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000"
+              style={{
+                backgroundImage: `url(${url})`,
+                opacity: i === current ? 1 : 0,
+                filter: "blur(4px) brightness(0.6)",
+                transform: "scale(1.05)",
+              }}
+            />
+          ))}
+        </div>
+      )}
+      {images.length === 0 && (
+        <div className="absolute inset-0 bg-gradient-to-br from-sky-900 via-blue-900 to-cyan-900" />
+      )}
+      <div className="absolute inset-0 bg-black/30" />
+      <div className="flex w-[900px] max-w-[95vw] min-h-[500px] rounded-2xl overflow-hidden shadow-2xl bg-white/90 backdrop-blur-md border border-white/20 relative z-10">
+        <div className="hidden md:flex w-1/2 p-10 flex-col justify-between relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-sky-500/90 via-blue-500/80 to-cyan-400/90" />
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3" />
           <div className="absolute bottom-0 left-0 w-80 h-80 bg-white/5 rounded-full translate-y-1/3 -translate-x-1/4" />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-white/5 rounded-full" />
