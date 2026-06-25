@@ -1,0 +1,160 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id             String      @id @default(cuid())
+  name           String?
+  email          String      @unique
+  emailVerified  Boolean     @default(false)
+  image          String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  role           String      @default("user")
+  sedeId         String?
+  sede           Sede?       @relation(fields: [sedeId], references: [id])
+  allowedSedeIds String?
+  patients       Patient[]
+  createdLists   ListItem[]
+  sessions       Session[]
+  accounts       Account[]
+
+  @@map("user")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  expiresAt    DateTime
+  token        String   @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  ipAddress    String?
+  userAgent    String?
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session")
+}
+
+model Account {
+  id              String  @id @default(cuid())
+  accountId       String
+  providerId      String
+  userId          String
+  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken     String?
+  refreshToken    String?
+  idToken         String?
+  accessTokenExpiresAt DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope           String?
+  password        String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("verification")
+}
+
+model Sede {
+  id           String        @id @default(cuid())
+  name         String        @unique
+  createdAt    DateTime      @default(now())
+  users        User[]
+  patients     Patient[]
+  medici       Medico[]
+  provenienze  Provenienza[]
+  modPagamenti ModPagamento[]
+  listItems    ListItem[]
+
+  @@map("sede")
+}
+
+model Medico {
+  id        String    @id @default(cuid())
+  name      String
+  sedeId    String
+  sede      Sede      @relation(fields: [sedeId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  patients  Patient[]
+
+  @@map("medico")
+}
+
+model Provenienza {
+  id        String    @id @default(cuid())
+  name      String
+  sedeId    String?
+  sede      Sede?     @relation(fields: [sedeId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  patients  Patient[]
+
+  @@unique([name, sedeId])
+  @@map("provenienza")
+}
+
+model ModPagamento {
+  id        String    @id @default(cuid())
+  name      String
+  sedeId    String?
+  sede      Sede?     @relation(fields: [sedeId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  patients  Patient[]
+
+  @@unique([name, sedeId])
+  @@map("mod_pagamento")
+}
+
+model ListItem {
+  id        String   @id @default(cuid())
+  type      String
+  value     String
+  sedeId    String?
+  createdBy String?
+  creator   User?    @relation(fields: [createdBy], references: [id])
+  sede      Sede?    @relation(fields: [sedeId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@map("list_item")
+}
+
+model Patient {
+  id              String       @id @default(cuid())
+  esito           String
+  data            DateTime
+  consulenteId    String?
+  consulente      User?        @relation(fields: [consulenteId], references: [id])
+  pazienteName    String
+  provenienzaId   String?
+  provenienza     Provenienza? @relation(fields: [provenienzaId], references: [id])
+  gender          String?
+  medicoId        String?
+  medico          Medico?      @relation(fields: [medicoId], references: [id])
+  importo         Float?
+  anticipo        Float?
+  modPagamentoId  String?
+  modPagamento    ModPagamento? @relation(fields: [modPagamentoId], references: [id])
+  dataApp         DateTime?
+  note            String?
+  sedeId          String
+  sede            Sede         @relation(fields: [sedeId], references: [id])
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@map("patient")
+}
