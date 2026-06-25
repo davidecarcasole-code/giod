@@ -26,7 +26,7 @@ type SedeData = {
   mesi: MeseData[];
 };
 
-export default function ObiettiviView({ userId, userRole }: { userId: string; userRole: string }) {
+export default function ObiettiviView({ userId }: { userId: string }) {
   const [data, setData] = useState<SedeData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSede, setSelectedSede] = useState<string>("all");
@@ -34,8 +34,6 @@ export default function ObiettiviView({ userId, userRole }: { userId: string; us
   const [editValues, setEditValues] = useState<Record<string, number>>({});
   const [saving, setSaving] = useState(false);
   const router = useRouter();
-  const isAdmin = userRole === "admin" || userRole === "supervisor";
-
   const fetchData = useCallback(async () => {
     const params = new URLSearchParams({ anno: "2026" });
     if (selectedSede !== "all") params.set("sede", selectedSede);
@@ -189,8 +187,7 @@ export default function ObiettiviView({ userId, userRole }: { userId: string; us
               </table>
             </div>
 
-            {isAdmin && (
-              <div className="p-4 border-t border-slate-100 flex justify-end gap-2">
+            <div className="p-4 border-t border-slate-100 flex justify-end gap-2">
                 {isEditing ? (
                   <>
                     <Button variant="outline" size="sm" onClick={cancelEditing} className="rounded-xl">
@@ -206,7 +203,6 @@ export default function ObiettiviView({ userId, userRole }: { userId: string; us
                   </Button>
                 )}
               </div>
-            )}
           </div>
         );
       })}

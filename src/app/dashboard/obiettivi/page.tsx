@@ -22,7 +22,7 @@ export default async function ObiettiviPage() {
           <p className="text-sm text-slate-500 mt-1">Target mensili e consuntivo per sede</p>
         </div>
       </div>
-      <ObiettiviView userId={dbUser.id} userRole={dbUser.role} />
+      <ObiettiviView userId={dbUser.id} />
     </div>
   );
 }

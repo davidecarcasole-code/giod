@@ -75,9 +75,7 @@ export async function PUT(request: Request) {
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const dbUser = await prisma.user.findUnique({ where: { id: session.user.id } });
-  if (!dbUser || (dbUser.role !== "admin" && dbUser.role !== "supervisor")) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  if (!dbUser) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await request.json();
   const { sedeId, anno, targets } = body; // targets: [{ mese, target }]
