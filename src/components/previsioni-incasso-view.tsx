@@ -39,6 +39,7 @@ export function PrevisioniIncassoView({
   const [form, setForm] = useState({ pazienteName: "", totale: "", modPagamento: "" });
   const [importLoading, setImportLoading] = useState(false);
   const [importResult, setImportResult] = useState<any>(null);
+  const [modPagamenti, setModPagamenti] = useState<any[]>([]);
 
   const allowedIds = useMemo(() => getUserAllowedSedeIds(user), [user]);
   const sedi = useMemo(() => {
@@ -52,6 +53,13 @@ export function PrevisioniIncassoView({
       setSelectedSede(sedi[0].name);
     }
   }, [sedi, selectedSede]);
+
+  useEffect(() => {
+    if (!selectedSede) return;
+    fetch(`/api/lists?type=modPagamentoGlobal&sede=${encodeURIComponent(selectedSede)}`)
+      .then((r) => r.json())
+      .then(setModPagamenti);
+  }, [selectedSede]);
 
   useEffect(() => {
     if (!selectedSede) return;
@@ -223,7 +231,12 @@ export function PrevisioniIncassoView({
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-600 mb-1">Mod. Pagamento</label>
-              <Input value={form.modPagamento} onChange={(e) => setForm({ ...form, modPagamento: e.target.value })} placeholder="UNICO / DILAZIONATO..." className="rounded-xl" />
+              <select value={form.modPagamento} onChange={(e) => setForm({ ...form, modPagamento: e.target.value })} className="flex h-9 w-full rounded-xl border border-input bg-white/50 px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                <option value="">Seleziona</option>
+                {modPagamenti.map((m: any) => (
+                  <option key={m.id} value={m.name}>{m.name}</option>
+                ))}
+              </select>
             </div>
           </div>
           <div className="flex gap-2 justify-end">
