@@ -25,17 +25,24 @@ export async function POST(request: Request) {
     const file = formData.get("file") as File;
     if (!file) return NextResponse.json({ error: "File richiesto" }, { status: 400 });
 
-    const sedeName = file.name.replace(/^~?\$?/, "").replace(/ - .+/, "").trim();
-    const sedeMap: Record<string, string> = {
-      LATINA: "LATINA",
-      "VILLA BETANIA": "VILLA BETANIA",
-      "CRISTO RE": "CRISTO RE",
-      FIRENZE: "FIRENZE",
-    };
+    const formSede = formData.get("sede") as string | null;
+    let mappedName: string | null = null;
 
-    const mappedName = Object.entries(sedeMap).find(([k]) => sedeName.toUpperCase().includes(k))?.[1];
+    if (formSede) {
+      mappedName = formSede;
+    } else {
+      const sedeName = file.name.replace(/^~?\$?/, "").replace(/ - .+/, "").trim();
+      const sedeMap: Record<string, string> = {
+        LATINA: "LATINA",
+        "VILLA BETANIA": "VILLA BETANIA",
+        "CRISTO RE": "CRISTO RE",
+        FIRENZE: "FIRENZE",
+      };
+      mappedName = Object.entries(sedeMap).find(([k]) => sedeName.toUpperCase().includes(k))?.[1] ?? null;
+    }
+
     if (!mappedName) {
-      return NextResponse.json({ error: `Sede non riconosciuta dal filename: ${sedeName}` }, { status: 400 });
+      return NextResponse.json({ error: "Sede non riconosciuta. Assicurati che il filename contenga il nome della sede o seleziona la sede prima dell'import." }, { status: 400 });
     }
 
     const sede = await prisma.sede.findUnique({ where: { name: mappedName } });

@@ -115,6 +115,7 @@ export function PrevisioniIncassoView({
     setImportResult(null);
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("sede", selectedSede);
     try {
       const res = await fetch("/api/previsioni-incasso/import", { method: "POST", body: formData });
       const result = await res.json();
