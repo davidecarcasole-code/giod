@@ -82,6 +82,7 @@ model Sede {
   modPagamenti ModPagamento[]
   listItems    ListItem[]
   obiettivi    Obiettivo[]
+  previsioniIncasso PrevisioneIncasso[]
 
   @@map("sede")
 }
@@ -147,6 +148,24 @@ model Obiettivo {
 
   @@unique([sedeId, anno, mese])
   @@map("obiettivo")
+}
+
+model PrevisioneIncasso {
+  id           String   @id @default(cuid())
+  sedeId       String
+  sede         Sede     @relation(fields: [sedeId], references: [id], onDelete: Cascade)
+  pazienteName String
+  totale       Float
+  modPagamento String
+  confermato   Boolean  @default(false)
+  mese         Int
+  anno         Int      @default(2026)
+  data         DateTime?
+  note         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("previsione_incasso")
 }
 
 model Patient {

@@ -15,6 +15,7 @@ import {
   ChevronRight,
   UserCircle,
   Target,
+  DollarSign,
   X,
 } from "lucide-react";
 import {
@@ -161,6 +162,9 @@ export function Sidebar({
         </NavLink>
         <NavLink href="/dashboard/obiettivi" icon={Target} onClick={onClose}>
           Obiettivi
+        </NavLink>
+        <NavLink href="/dashboard/previsioni-incasso" icon={DollarSign} onClick={onClose}>
+          Previsioni Incasso
         </NavLink>
 
         <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest px-3 pt-5 pb-2">
