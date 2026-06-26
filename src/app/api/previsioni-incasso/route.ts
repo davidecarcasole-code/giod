@@ -20,9 +20,15 @@ export async function GET(request: Request) {
   const where: any = {};
   if (sedeName) {
     const sedeRec = await prisma.sede.findUnique({ where: { name: sedeName } });
-    if (sedeRec) where.sedeId = sedeRec.id;
+    if (sedeRec) {
+      if (!canAccessSede(dbUser || session.user, sedeRec.id)) {
+        return NextResponse.json({ error: "Non autorizzato per questa sede" }, { status: 403 });
+      }
+      where.sedeId = sedeRec.id;
+    }
+  } else if (allowedIds) {
+    where.sedeId = { in: allowedIds };
   }
-  if (allowedIds) where.sedeId = { in: allowedIds };
   if (month) where.mese = parseInt(month);
   where.anno = parseInt(year);
 
