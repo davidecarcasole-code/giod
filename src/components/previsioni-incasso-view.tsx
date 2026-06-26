@@ -212,7 +212,7 @@ export function PrevisioniIncassoView({
           <p className="text-2xl font-bold text-blue-800 mt-1">€ {totalIncasso.toLocaleString()}</p>
         </div>
         <div className="rounded-2xl bg-gradient-to-br from-teal-50 to-teal-100 p-5 border border-teal-200">
-          <p className="text-sm text-teal-600 font-medium">Confermato</p>
+          <p className="text-sm text-teal-600 font-medium">Tot. Incasso confermato</p>
           <p className="text-2xl font-bold text-teal-800 mt-1">€ {totalConfermato.toLocaleString()}</p>
         </div>
       </div>
