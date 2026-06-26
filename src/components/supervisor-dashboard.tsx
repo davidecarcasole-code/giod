@@ -124,7 +124,7 @@ export function SupervisorDashboard({
           <TabsTrigger value="medici">Medici</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="fatturato">
+        <TabsContent keepMounted value="fatturato">
           <Card className="shadow-sm">
             <CardHeader>
               <CardTitle>Fatturato per Sede</CardTitle>
@@ -146,7 +146,7 @@ export function SupervisorDashboard({
           </Card>
         </TabsContent>
 
-        <TabsContent value="medici">
+        <TabsContent keepMounted value="medici">
           <Card className="shadow-sm">
             <CardHeader>
               <CardTitle>Statistiche Medici (Tutte le sedi)</CardTitle>

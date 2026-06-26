@@ -293,7 +293,7 @@ export function AdminPanel({ userRole, userSedeId, sedi: serverSedi, allowedSede
           {!isUser && <TabsTrigger value="import">Import/Export</TabsTrigger>}
         </TabsList>
 
-        <TabsContent value="liste" className="space-y-6">
+        <TabsContent keepMounted value="liste" className="space-y-6">
           {(!isUser || allowedSedeIds) && sedi.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {sedi.map((s: any) => (
@@ -447,7 +447,7 @@ export function AdminPanel({ userRole, userSedeId, sedi: serverSedi, allowedSede
         </TabsContent>
 
         {!isUser && (
-          <TabsContent value="utenti" className="space-y-6">
+          <TabsContent keepMounted value="utenti" className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Crea Nuovo Utente</CardTitle>
@@ -574,7 +574,7 @@ export function AdminPanel({ userRole, userSedeId, sedi: serverSedi, allowedSede
         )}
 
         {!isUser && (
-          <TabsContent value="import" className="space-y-6">
+          <TabsContent keepMounted value="import" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>

@@ -160,7 +160,7 @@ export function SedeDashboard({
           <TabsTrigger value="medici" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">Medici</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="tabella" className="space-y-4">
+        <TabsContent keepMounted value="tabella" className="space-y-4">
           <Input placeholder="Cerca paziente, consulente, medico..." value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-sm rounded-xl border-slate-200 bg-white/50 focus:border-sky-400 focus:ring-sky-400/20" />
           <div className="rounded-2xl border bg-card shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
@@ -211,7 +211,7 @@ export function SedeDashboard({
           </div>
         </TabsContent>
 
-        <TabsContent value="esiti">
+        <TabsContent keepMounted value="esiti">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card className="shadow-sm border-0">
               <CardHeader className="pb-2">
@@ -272,7 +272,7 @@ export function SedeDashboard({
           </div>
         </TabsContent>
 
-        <TabsContent value="medici" className="space-y-6">
+        <TabsContent keepMounted value="medici" className="space-y-6">
           <Card className="shadow-sm border-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg font-semibold text-slate-800">Fatturato per Medico</CardTitle>
