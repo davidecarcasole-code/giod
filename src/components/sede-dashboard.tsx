@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Euro, TrendingUp, TrendingDown, Banknote, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, Euro, TrendingUp, TrendingDown, Banknote, Sparkles, Trash2 } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -68,6 +68,17 @@ export function SedeDashboard({
   monthName: string;
 }) {
   const [search, setSearch] = useState("");
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Eliminare questo paziente?")) return;
+    setDeleting(id);
+    try {
+      const res = await fetch(`/api/pazienti?id=${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Errore");
+      window.location.reload();
+    } catch { window.location.reload(); }
+  };
 
   const prevMonth = month === 0 ? 11 : month - 1;
   const prevYear = month === 0 ? year - 1 : year;
@@ -192,9 +203,14 @@ export function SedeDashboard({
                       <td className="p-3.5 text-right font-medium text-slate-800">{p.importo ? `€ ${p.importo.toLocaleString()}` : "-"}</td>
                       <td className="p-3.5 max-w-[160px] truncate text-slate-500 text-sm" title={p.note || ""}>{p.note || "-"}</td>
                       <td className="p-3.5">
-                        <Link href={`/dashboard/pazienti/${p.id}/edit`} className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-sky-50 hover:border-sky-200 hover:text-sky-700 h-8 px-3 text-xs font-medium transition-all shadow-sm">
-                          Modifica
-                        </Link>
+                        <div className="flex gap-1">
+                          <Link href={`/dashboard/pazienti/${p.id}/edit`} className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-sky-50 hover:border-sky-200 hover:text-sky-700 h-8 px-3 text-xs font-medium transition-all shadow-sm">
+                            Modifica
+                          </Link>
+                          <button onClick={() => handleDelete(p.id)} disabled={deleting === p.id} className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-red-50 hover:border-red-200 hover:text-red-600 h-8 w-8 transition-all shadow-sm">
+                            <Trash2 className="w-4 h-4 text-red-400 hover:text-red-500" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
