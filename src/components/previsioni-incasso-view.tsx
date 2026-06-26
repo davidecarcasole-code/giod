@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   ChevronLeft, ChevronRight, DollarSign, CheckCircle2, Circle,
   Plus, Trash2, FileSpreadsheet,
@@ -12,9 +12,25 @@ const MONTHS = [
   "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre",
 ];
 
-export function PrevisioniIncassoView({ userId }: { userId: string }) {
+function getUserAllowedSedeIds(user: { role?: string | null; sedeId?: string | null; allowedSedeIds?: string | null }): string[] | null {
+  if (user.allowedSedeIds) {
+    try {
+      const ids = JSON.parse(user.allowedSedeIds);
+      if (Array.isArray(ids) && ids.length > 0) return ids;
+    } catch {}
+  }
+  if (user.sedeId) return [user.sedeId];
+  return null;
+}
+
+export function PrevisioniIncassoView({
+  user,
+  allSedi,
+}: {
+  user: { role: string | null; sedeId: string | null; allowedSedeIds: string | null };
+  allSedi: { id: string; name: string }[];
+}) {
   const [records, setRecords] = useState<any[]>([]);
-  const [sedi, setSedi] = useState<any[]>([]);
   const [selectedSede, setSelectedSede] = useState("");
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
   const [loading, setLoading] = useState(true);
@@ -24,14 +40,18 @@ export function PrevisioniIncassoView({ userId }: { userId: string }) {
   const [importLoading, setImportLoading] = useState(false);
   const [importResult, setImportResult] = useState<any>(null);
 
+  const allowedIds = useMemo(() => getUserAllowedSedeIds(user), [user]);
+  const sedi = useMemo(() => {
+    if (user.role === "admin" || user.role === "supervisor") return allSedi;
+    if (allowedIds) return allSedi.filter((s) => allowedIds.includes(s.id));
+    return allSedi;
+  }, [allSedi, user, allowedIds]);
+
   useEffect(() => {
-    fetch("/api/lists?type=sedi")
-      .then((r) => r.json())
-      .then((data) => {
-        setSedi(data);
-        if (data.length > 0 && !selectedSede) setSelectedSede(data[0].name);
-      });
-  }, []);
+    if (sedi.length > 0 && (!selectedSede || !sedi.find((s) => s.name === selectedSede))) {
+      setSelectedSede(sedi[0].name);
+    }
+  }, [sedi, selectedSede]);
 
   useEffect(() => {
     if (!selectedSede) return;
@@ -43,7 +63,7 @@ export function PrevisioniIncassoView({ userId }: { userId: string }) {
       .finally(() => setLoading(false));
   }, [selectedSede, currentMonth]);
 
-  const sedeInfo = sedi.find((s) => s.name === selectedSede);
+  const sedeInfo = allSedi.find((s) => s.name === selectedSede);
 
   const totalIncasso = records.reduce((sum, r) => sum + r.totale, 0);
   const totalConfermato = records.filter((r) => r.confermato).reduce((sum, r) => sum + r.totale, 0);
@@ -147,19 +167,21 @@ export function PrevisioniIncassoView({ userId }: { userId: string }) {
       )}
 
       <div className="flex flex-wrap gap-4 items-center justify-between">
-        <div className="flex flex-wrap gap-2">
-          {sedi.map((s: any) => (
-            <button key={s.id} onClick={() => setSelectedSede(s.name)}
-              className={`px-4 py-1.5 rounded-xl text-sm font-medium transition-all ${
-                selectedSede === s.name
-                  ? "bg-emerald-500 text-white shadow-md"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-              }`}
-            >
-              {s.name}
-            </button>
-          ))}
-        </div>
+        {sedi.length > 1 && (
+          <div className="flex flex-wrap gap-2">
+            {sedi.map((s: any) => (
+              <button key={s.id} onClick={() => setSelectedSede(s.name)}
+                className={`px-4 py-1.5 rounded-xl text-sm font-medium transition-all ${
+                  selectedSede === s.name
+                    ? "bg-emerald-500 text-white shadow-md"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                {s.name}
+              </button>
+            ))}
+          </div>
+        )}
         <div className="flex items-center gap-2">
           <button onClick={() => setCurrentMonth((m) => (m === 1 ? 12 : m - 1))} className="p-2 rounded-xl hover:bg-slate-100 transition-colors">
             <ChevronLeft className="w-5 h-5 text-slate-500" />

@@ -14,9 +14,14 @@ export default async function PrevisioniIncassoPage() {
   const dbUser = await prisma.user.findUnique({ where: { id: session.user.id } });
   if (!dbUser) redirect("/login");
 
+  const sedi = await prisma.sede.findMany({ orderBy: { name: "asc" } });
+
   return (
     <div className="p-6 md:p-8 space-y-6">
-      <PrevisioniIncassoView userId={dbUser.id} />
+      <PrevisioniIncassoView
+        user={{ role: dbUser.role, sedeId: dbUser.sedeId, allowedSedeIds: dbUser.allowedSedeIds }}
+        allSedi={sedi}
+      />
     </div>
   );
 }
