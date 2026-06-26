@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getUserAllowedSedeIds, canAccessSede } from "@/lib/user-sede";
 import * as XLSX from "xlsx";
 
 const MONTH_NAMES = [
@@ -18,9 +19,6 @@ export async function POST(request: Request) {
   const h = await headers();
   const session = await auth.api.getSession({ headers: h });
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (session.user.role === "user") {
-    return NextResponse.json({ error: "Non autorizzato" }, { status: 403 });
-  }
 
   try {
     const formData = await request.formData();
@@ -42,6 +40,11 @@ export async function POST(request: Request) {
 
     const sede = await prisma.sede.findUnique({ where: { name: mappedName } });
     if (!sede) return NextResponse.json({ error: "Sede non trovata" }, { status: 400 });
+
+    const dbUser = await prisma.user.findUnique({ where: { id: session.user.id } });
+    if (!canAccessSede(dbUser || session.user, sede.id)) {
+      return NextResponse.json({ error: "Non autorizzato per questa sede" }, { status: 403 });
+    }
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const workbook = XLSX.read(buffer, { type: "buffer" });
