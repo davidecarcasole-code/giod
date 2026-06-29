@@ -166,8 +166,8 @@ export function AnalyticsPanel({
         </div>
       </div>
 
-      <div className="rounded-2xl border bg-card shadow-sm overflow-hidden">
-        <div className="bg-gradient-to-r from-violet-500/10 to-indigo-500/10 px-5 py-3 border-b flex items-center gap-2">
+      <div className="rounded-2xl border bg-card shadow-sm">
+        <div className="bg-gradient-to-r from-violet-500/10 to-indigo-500/10 px-5 py-3 border-b flex items-center gap-2 overflow-hidden rounded-t-2xl">
           <Filter className="w-4 h-4 text-violet-600" />
           <span className="font-semibold text-sm text-slate-700">Filtri di ricerca</span>
         </div>
