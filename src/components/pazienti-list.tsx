@@ -10,7 +10,7 @@ const selectClass = "flex h-9 w-full max-w-[180px] rounded-xl border border-inpu
 const thClass = "text-left p-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider";
 const thSortClass = "text-left p-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider cursor-pointer select-none hover:text-slate-700 transition-colors";
 
-type SortField = "data" | "pazienteName" | "modPagamento" | "esito" | "importo";
+type SortField = "data" | "pazienteName" | "modPagamento" | "provenienza" | "esito" | "importo";
 
 export function PazientiList({
   patients,
@@ -79,6 +79,10 @@ export function PazientiList({
             va = (a.modPagamento?.name || "").toLowerCase();
             vb = (b.modPagamento?.name || "").toLowerCase();
             break;
+          case "provenienza":
+            va = (a.provenienza?.name || "").toLowerCase();
+            vb = (b.provenienza?.name || "").toLowerCase();
+            break;
           case "esito":
             va = (a.esito || "").toLowerCase();
             vb = (b.esito || "").toLowerCase();
@@ -139,6 +143,7 @@ export function PazientiList({
                 <th className={thSortClass} onClick={() => handleSort("pazienteName")}>Paziente <SortIcon field="pazienteName" /></th>
                 <th className={thClass}>Consulente</th>
                 <th className={thClass}>Medico</th>
+                <th className={thSortClass} onClick={() => handleSort("provenienza")}>Provenienza <SortIcon field="provenienza" /></th>
                 <th className={thClass}>Sede</th>
                 <th className={thSortClass} onClick={() => handleSort("esito")}>Esito <SortIcon field="esito" /></th>
                 <th className={thSortClass} onClick={() => handleSort("modPagamento")}>Mod. Pagamento <SortIcon field="modPagamento" /></th>
@@ -154,6 +159,7 @@ export function PazientiList({
                   <td className="p-3.5 font-medium text-slate-800">{p.pazienteName}</td>
                   <td className="p-3.5 text-slate-600">{p.consulente?.name || "-"}</td>
                   <td className="p-3.5 text-slate-600">{p.medico?.name || "-"}</td>
+                  <td className="p-3.5 text-slate-600">{p.provenienza?.name || "—"}</td>
                   <td className="p-3.5 text-slate-600">{p.sede?.name || "-"}</td>
                   <td className="p-3.5">
                     <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold text-white shadow-sm" style={{ backgroundColor: esitoColors[p.esito] || "#6b7280" }}>
