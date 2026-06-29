@@ -254,7 +254,9 @@ export async function DELETE(request: Request) {
   }
 
   try {
-    if (type === "medico") {
+    if (type === "sede") {
+      await prisma.sede.delete({ where: { id } });
+    } else if (type === "medico") {
       await prisma.medico.delete({ where: { id } });
     } else if (type === "provenienza") {
       await prisma.provenienza.delete({ where: { id } });

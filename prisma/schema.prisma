@@ -17,7 +17,7 @@ model User {
   updatedAt      DateTime    @updatedAt
   role           String      @default("user")
   sedeId         String?
-  sede           Sede?       @relation(fields: [sedeId], references: [id])
+  sede           Sede?       @relation(fields: [sedeId], references: [id], onDelete: SetNull)
   allowedSedeIds String?
   patients       Patient[]
   createdLists   ListItem[]
@@ -187,7 +187,7 @@ model Patient {
   dataApp         DateTime?
   note            String?
   sedeId          String
-  sede            Sede         @relation(fields: [sedeId], references: [id])
+  sede            Sede         @relation(fields: [sedeId], references: [id], onDelete: Cascade)
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 

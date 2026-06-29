@@ -159,9 +159,15 @@ export function AdminPanel({ userRole, userSedeId, sedi: serverSedi, allowedSede
     if (!confirm("Sicuro di voler eliminare?")) return;
     try {
       const res = await fetch(`/api/lists?type=${type}&id=${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Errore");
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Errore");
+      }
       toast.success("Eliminato");
-      if (userSedeName) {
+      if (type === "sede") {
+        await loadSedi();
+        setSelectedSede("");
+      } else if (selectedSede) {
         await loadProvenienze(selectedSede);
         await loadModPagamenti(selectedSede);
         await loadMedici(selectedSede);
@@ -322,6 +328,7 @@ export function AdminPanel({ userRole, userSedeId, sedi: serverSedi, allowedSede
                     {sedi.map((s: any) => (
                       <div key={s.id} className="flex items-center justify-between py-1.5 px-3 bg-muted/50 rounded-lg">
                         <span className="font-medium">{s.name}</span>
+                        <Button variant="ghost" size="sm" onClick={() => handleDelete("sede", s.id)}><Trash2 className="w-4 h-4 text-red-500" /></Button>
                       </div>
                     ))}
                   </div>
