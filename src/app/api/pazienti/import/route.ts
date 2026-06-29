@@ -43,7 +43,7 @@ function parseRow(row: any[], offset: number, sedeId: string, defaultUserId: str
     medicoName: row[6 + offset] ? String(row[6 + offset]).trim() : null,
     importo: row[8 + offset] ? parseFloat(String(row[8 + offset]).replace(",", ".")) : null,
     anticipo: row[13 + offset] ? parseFloat(String(row[13 + offset]).replace(",", ".")) : null,
-    modPagamentoName: row[14 + offset] ? String(row[14 + offset]).trim() : null,
+    modPagamentoName: row[15 + offset] ? String(row[15 + offset]).trim() : null,
     rawDataApp: row[16 + offset],
     note: row[17 + offset] ? String(row[17 + offset]).trim() : null,
   };
