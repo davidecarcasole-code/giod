@@ -61,6 +61,7 @@ export function OpportunitaList({
             <th className="text-left p-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">Consulente</th>
             <th className="text-left p-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">Medico</th>
             {showSedeCol && <th className="text-left p-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">Sede</th>}
+            <th className="text-left p-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">Mod. Pagamento</th>
             <th className="text-left p-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">Esito</th>
             <th className="text-right p-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">Importo</th>
             <th className="text-left p-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">Azioni</th>
@@ -74,6 +75,7 @@ export function OpportunitaList({
               <td className="p-3.5 text-slate-600">{r.consulente?.name || "-"}</td>
               <td className="p-3.5 text-slate-600">{r.medico?.name || "-"}</td>
               {showSedeCol && <td className="p-3.5 text-slate-600">{r.sede?.name || "-"}</td>}
+              <td className="p-3.5 text-slate-600">{r.modPagamento?.name || "—"}</td>
               <td className="p-3.5">
                 <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold text-white shadow-sm" style={{ backgroundColor: esitoColors[r.esito] || "#6b7280" }}>
                   {r.esito}

@@ -38,11 +38,13 @@ async function main() {
     let fileUpdated = 0;
 
     for (const sn of wb.SheetNames) {
-      if (sn.startsWith("OPPORTUNIT")) continue;
       const rows: any[][] = XLSX.utils.sheet_to_json(wb.Sheets[sn], { header: 1 });
       const hdrIx = rows.findIndex((r) => r[0] === "Esito/Stato" || r[1] === "Esito/Stato");
       if (hdrIx < 0) continue;
       const offset = rows[hdrIx][0] === "Esito/Stato" ? 0 : 1;
+      const hdrRow = rows[hdrIx];
+      const modPagHdr = (hdrRow as any[]).findIndex((c: any) => String(c || "").trim() === "Mod.Pagamento");
+      const modPagCol = modPagHdr >= 0 ? modPagHdr + 1 : 15 + offset;
 
       for (let i = hdrIx + 1; i < rows.length; i++) {
         const r = rows[i];
@@ -56,7 +58,7 @@ async function main() {
         const pazienteName = r[3 + offset] ? String(r[3 + offset]).trim() : "";
         if (!pazienteName) continue;
 
-        const modPagamentoName = r[15 + offset] ? String(r[15 + offset]).trim() : "";
+        const modPagamentoName = r[modPagCol] ? String(r[modPagCol]).trim() : "";
         if (!modPagamentoName) continue;
 
         try {

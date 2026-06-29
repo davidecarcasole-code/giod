@@ -22,7 +22,12 @@ function excelDate(serial: number): Date {
   return new Date((serial - 25569) * 86400 * 1000);
 }
 
-function parseRow(row: any[], offset: number, sedeId: string, defaultUserId: string) {
+function findModPagamentoCol(headerRow: any[], fallback: number): number {
+  const idx = (headerRow as any[]).findIndex((c: any) => String(c || "").trim() === "Mod.Pagamento");
+  return idx >= 0 ? idx + 1 : fallback;
+}
+
+function parseRow(row: any[], offset: number, modPagamentoAbsCol: number) {
   const esito = (row[0 + offset] || "").trim();
   if (!esitiValidi.includes(esito)) return null;
 
@@ -43,7 +48,7 @@ function parseRow(row: any[], offset: number, sedeId: string, defaultUserId: str
     medicoName: row[6 + offset] ? String(row[6 + offset]).trim() : null,
     importo: row[8 + offset] ? parseFloat(String(row[8 + offset]).replace(",", ".")) : null,
     anticipo: row[13 + offset] ? parseFloat(String(row[13 + offset]).replace(",", ".")) : null,
-    modPagamentoName: row[15 + offset] ? String(row[15 + offset]).trim() : null,
+    modPagamentoName: row[modPagamentoAbsCol] ? String(row[modPagamentoAbsCol]).trim() : null,
     rawDataApp: row[16 + offset],
     note: row[17 + offset] ? String(row[17 + offset]).trim() : null,
   };
@@ -105,12 +110,13 @@ export async function POST(request: Request) {
 
       if (!headerRow) continue;
 
+      const modPagamentoAbsCol = findModPagamentoCol(headerRow, 15 + offset);
       const monthIndex = monthNames.indexOf(sheetName.toUpperCase());
       const year = 2026;
 
       for (const row of rows) {
         if (row === headerRow) continue;
-        const parsed = parseRow(row, offset, sede.id, session.user.id);
+        const parsed = parseRow(row, offset, modPagamentoAbsCol);
         if (!parsed) continue;
 
         try {
