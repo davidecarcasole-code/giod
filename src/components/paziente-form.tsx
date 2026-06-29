@@ -172,36 +172,6 @@ export function PazienteForm({ initialData, userSedeId, userRole, defaultMonth, 
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        <SectionBox icon={Building2} title="Sede e Stato">
-          <FieldRow>
-            <FieldGroup label="Sede" required>
-              <select
-                value={form.sede}
-                onChange={(e) => setForm({ ...form, sede: e.target.value, medicoId: "" })}
-                disabled={!!initialData || (userRole === "user" && availableSedi.length === 1)}
-                className={selectClass}
-              >
-                <option value="">Seleziona sede</option>
-                {availableSedi.map((s) => (
-                  <option key={s.name} value={s.name}>{s.name}</option>
-                ))}
-              </select>
-            </FieldGroup>
-            <FieldGroup label="Esito / Stato" required>
-              <select
-                value={form.esito}
-                onChange={(e) => setForm({ ...form, esito: e.target.value })}
-                className={selectClass}
-              >
-                <option value="">Seleziona esito</option>
-                {((customEsiti ?? defaultEsiti) as string[]).map((e) => (
-                  <option key={e} value={e}>{e}</option>
-                ))}
-              </select>
-            </FieldGroup>
-          </FieldRow>
-        </SectionBox>
-
         <SectionBox icon={User} title="Dati Anagrafici">
           <FieldRow>
             <FieldGroup label="Nome Paziente" required>
@@ -311,6 +281,36 @@ export function PazienteForm({ initialData, userSedeId, userRole, defaultMonth, 
               </div>
             </FieldGroup>
           </div>
+        </SectionBox>
+
+        <SectionBox icon={Building2} title="Sede e Stato">
+          <FieldRow>
+            <FieldGroup label="Sede" required>
+              <select
+                value={form.sede}
+                onChange={(e) => setForm({ ...form, sede: e.target.value, medicoId: "" })}
+                disabled={!!initialData || (userRole === "user" && availableSedi.length === 1)}
+                className={selectClass}
+              >
+                <option value="">Seleziona sede</option>
+                {availableSedi.map((s) => (
+                  <option key={s.name} value={s.name}>{s.name}</option>
+                ))}
+              </select>
+            </FieldGroup>
+            <FieldGroup label="Esito / Stato" required>
+              <select
+                value={form.esito}
+                onChange={(e) => setForm({ ...form, esito: e.target.value })}
+                className={selectClass}
+              >
+                <option value="">Seleziona esito</option>
+                {((customEsiti ?? defaultEsiti) as string[]).map((e) => (
+                  <option key={e} value={e}>{e}</option>
+                ))}
+              </select>
+            </FieldGroup>
+          </FieldRow>
         </SectionBox>
 
         <div className="flex items-center justify-between pt-2">
