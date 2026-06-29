@@ -16,6 +16,7 @@ export async function GET() {
       id: true,
       name: true,
       email: true,
+      image: true,
       role: true,
       sedeId: true,
       allowedSedeIds: true,
@@ -34,7 +35,7 @@ export async function PUT(request: Request) {
   }
 
   const body = await request.json();
-  const { userId, name, role, sedeId, allowedSedeIds } = body;
+  const { userId, name, role, sedeId, allowedSedeIds, image } = body;
 
   if (!userId) {
     return NextResponse.json({ error: "userId richiesto" }, { status: 400 });
@@ -46,6 +47,7 @@ export async function PUT(request: Request) {
     if (role !== undefined) data.role = role;
     if (sedeId !== undefined) data.sedeId = sedeId || null;
     if (allowedSedeIds !== undefined) data.allowedSedeIds = allowedSedeIds;
+    if (image !== undefined) data.image = image || null;
 
     await prisma.user.update({ where: { id: userId }, data });
     return NextResponse.json({ success: true });

@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Trash2, Upload, Download, Pencil, X, Check, Stethoscope, KeyRound, UserPlus, Shield, Building2 } from "lucide-react";
+import { Plus, Trash2, Upload, Download, Pencil, X, Check, Stethoscope, KeyRound, UserPlus, Shield, Building2, Save } from "lucide-react";
 import Link from "next/link";
 
 const selectClass = "flex h-9 w-full rounded-lg border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
@@ -36,6 +36,13 @@ export function AdminPanel({ userRole, userSedeId, sedi: serverSedi, allowedSede
   const [newUserSede, setNewUserSede] = useState("");
   const [resetPwTarget, setResetPwTarget] = useState<any>(null);
   const [resetPwPassword, setResetPwPassword] = useState("");
+  const [editUserTarget, setEditUserTarget] = useState<any>(null);
+  const [editUserName, setEditUserName] = useState("");
+  const [editUserImage, setEditUserImage] = useState("");
+  const [editUserRole, setEditUserRole] = useState("");
+  const [editUserSede, setEditUserSede] = useState("");
+  const [editUserAllowed, setEditUserAllowed] = useState<string[]>([]);
+  const [editUserPassword, setEditUserPassword] = useState("");
 
   const loadSedi = async () => {
     try {
@@ -273,6 +280,52 @@ export function AdminPanel({ userRole, userSedeId, sedi: serverSedi, allowedSede
       toast.success("Password reimpostata");
       setResetPwTarget(null);
       setResetPwPassword("");
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+    setLoading(false);
+  };
+
+  const openEditUser = (u: any) => {
+    setEditUserTarget(u);
+    setEditUserName(u.name || "");
+    setEditUserImage(u.image || "");
+    setEditUserRole(u.role);
+    setEditUserSede(u.sedeId || "");
+    setEditUserAllowed(u.allowedSedeIds ? JSON.parse(u.allowedSedeIds) : []);
+    setEditUserPassword("");
+  };
+
+  const handleEditUserSave = async () => {
+    if (!editUserTarget) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/users", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: editUserTarget.id,
+          name: editUserName.trim() || null,
+          role: editUserRole,
+          sedeId: editUserSede || null,
+          allowedSedeIds: JSON.stringify(editUserAllowed),
+          image: editUserImage.trim() || null,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Errore");
+      }
+      if (editUserPassword.length >= 6) {
+        await fetch("/api/users", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: editUserTarget.id, newPassword: editUserPassword }),
+        });
+      }
+      toast.success("Utente aggiornato");
+      setEditUserTarget(null);
+      await loadUsers();
     } catch (err: any) {
       toast.error(err.message);
     }
@@ -540,30 +593,107 @@ export function AdminPanel({ userRole, userSedeId, sedi: serverSedi, allowedSede
                             </select>
                           </td>
                           <td className="py-2 text-right">
-                            <Dialog open={resetPwTarget?.id === u.id} onOpenChange={open => { if (!open) setResetPwTarget(null); }}>
-                              <DialogTrigger render={<Button variant="ghost" size="sm" onClick={() => { setResetPwTarget(u); setResetPwPassword(""); }} />}>
-                                <KeyRound className="w-4 h-4" />
-                              </DialogTrigger>
-                              <DialogContent>
-                                <DialogHeader>
-                                  <DialogTitle>Reset Password - {resetPwTarget?.name || resetPwTarget?.email}</DialogTitle>
-                                </DialogHeader>
-                                <div className="space-y-4 pt-2">
-                                  <div className="space-y-2">
-                                    <Label>Nuova Password</Label>
-                                    <Input
-                                      type="password"
-                                      value={resetPwPassword}
-                                      onChange={e => setResetPwPassword(e.target.value)}
-                                      placeholder="Minimo 6 caratteri"
-                                    />
+                            <div className="flex gap-1 justify-end">
+                              <Dialog open={editUserTarget?.id === u.id} onOpenChange={open => { if (!open) setEditUserTarget(null); }}>
+                                <DialogTrigger render={<Button variant="ghost" size="sm" onClick={() => openEditUser(u)} />}>
+                                  <Pencil className="w-4 h-4" />
+                                </DialogTrigger>
+                                <DialogContent className="max-w-md">
+                                  <DialogHeader>
+                                    <DialogTitle>Modifica Utente - {editUserTarget?.name || editUserTarget?.email}</DialogTitle>
+                                  </DialogHeader>
+                                  <div className="space-y-4 pt-2 max-h-[70vh] overflow-y-auto">
+                                    <div className="space-y-2">
+                                      <Label>Nome</Label>
+                                      <Input value={editUserName} onChange={e => setEditUserName(e.target.value)} />
+                                    </div>
+                                    <div className="space-y-2">
+                                      <Label>Avatar (URL)</Label>
+                                      <div className="flex gap-3 items-center">
+                                        {editUserImage && (
+                                          <img src={editUserImage} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                                        )}
+                                        <Input value={editUserImage} onChange={e => setEditUserImage(e.target.value)} placeholder="https://esempio.it/avatar.jpg" className="flex-1" />
+                                      </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                      <Label>Email</Label>
+                                      <Input value={editUserTarget?.email || ""} disabled className="bg-muted text-muted-foreground" />
+                                    </div>
+                                    <div className="space-y-2">
+                                      <Label>Ruolo</Label>
+                                      <select value={editUserRole} onChange={e => setEditUserRole(e.target.value)} className={selectClass}>
+                                        <option value="user">User</option>
+                                        <option value="supervisor">Supervisor</option>
+                                        <option value="admin">Admin</option>
+                                      </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                      <Label>Sede</Label>
+                                      <select value={editUserSede} onChange={e => setEditUserSede(e.target.value)} className={selectClass}>
+                                        <option value="">—</option>
+                                        {sedi.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                      </select>
+                                    </div>
+                                    {editUserRole === "user" && sedi.length > 1 && (
+                                      <div className="space-y-2">
+                                        <Label>Accesso Multi-Sede</Label>
+                                        <div className="space-y-1">
+                                          {sedi.map((s: any) => (
+                                            <label key={s.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                                              <input
+                                                type="checkbox"
+                                                checked={editUserAllowed.includes(s.id)}
+                                                onChange={e => {
+                                                  if (e.target.checked) {
+                                                    setEditUserAllowed([...editUserAllowed, s.id]);
+                                                  } else {
+                                                    setEditUserAllowed(editUserAllowed.filter(id => id !== s.id));
+                                                  }
+                                                }}
+                                                className="rounded"
+                                              />
+                                              {s.name}
+                                            </label>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                    <div className="space-y-2">
+                                      <Label>Nuova Password (lascia vuoto per non cambiare)</Label>
+                                      <Input type="password" value={editUserPassword} onChange={e => setEditUserPassword(e.target.value)} placeholder="Minimo 6 caratteri" />
+                                    </div>
+                                    <Button onClick={handleEditUserSave} disabled={loading} className="w-full">
+                                      <Save className="w-4 h-4 mr-1" /> Salva Modifiche
+                                    </Button>
                                   </div>
-                                  <Button onClick={handleResetPassword} disabled={loading} className="w-full">
-                                    <KeyRound className="w-4 h-4 mr-1" /> Reimposta Password
-                                  </Button>
-                                </div>
-                              </DialogContent>
-                            </Dialog>
+                                </DialogContent>
+                              </Dialog>
+                              <Dialog open={resetPwTarget?.id === u.id} onOpenChange={open => { if (!open) setResetPwTarget(null); }}>
+                                <DialogTrigger render={<Button variant="ghost" size="sm" onClick={() => { setResetPwTarget(u); setResetPwPassword(""); }} />}>
+                                  <KeyRound className="w-4 h-4" />
+                                </DialogTrigger>
+                                <DialogContent>
+                                  <DialogHeader>
+                                    <DialogTitle>Reset Password - {resetPwTarget?.name || resetPwTarget?.email}</DialogTitle>
+                                  </DialogHeader>
+                                  <div className="space-y-4 pt-2">
+                                    <div className="space-y-2">
+                                      <Label>Nuova Password</Label>
+                                      <Input
+                                        type="password"
+                                        value={resetPwPassword}
+                                        onChange={e => setResetPwPassword(e.target.value)}
+                                        placeholder="Minimo 6 caratteri"
+                                      />
+                                    </div>
+                                    <Button onClick={handleResetPassword} disabled={loading} className="w-full">
+                                      <KeyRound className="w-4 h-4 mr-1" /> Reimposta Password
+                                    </Button>
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
+                            </div>
                           </td>
                         </tr>
                       ))}
