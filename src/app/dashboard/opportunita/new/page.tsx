@@ -38,15 +38,12 @@ export default async function NewOpportunitaPage({
   }));
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Nuova Opportunità di Vendita</h1>
-      <PazienteForm
-        userSedeId={session.user.sedeId || undefined}
-        userRole={session.user.role || "user"}
-        defaultSedeName={defaultSedeName}
-        customEsiti={OPPORTUNITA_ESITI}
-        sedi={formSedi}
-      />
-    </div>
+    <PazienteForm
+      userSedeId={session.user.sedeId || undefined}
+      userRole={session.user.role || "user"}
+      defaultSedeName={defaultSedeName}
+      customEsiti={OPPORTUNITA_ESITI}
+      sedi={formSedi}
+    />
   );
 }

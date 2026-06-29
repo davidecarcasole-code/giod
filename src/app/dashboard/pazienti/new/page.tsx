@@ -39,16 +39,13 @@ export default async function NewPazientePage({
   }));
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Nuovo Paziente</h1>
-      <PazienteForm
-        userSedeId={session.user.sedeId || undefined}
-        userRole={session.user.role || "user"}
-        defaultMonth={month}
-        defaultYear={year}
-        defaultSedeName={defaultSedeName}
-        sedi={formSedi}
-      />
-    </div>
+    <PazienteForm
+      userSedeId={session.user.sedeId || undefined}
+      userRole={session.user.role || "user"}
+      defaultMonth={month}
+      defaultYear={year}
+      defaultSedeName={defaultSedeName}
+      sedi={formSedi}
+    />
   );
 }
