@@ -1,12 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { ESITO_COLORS as esitoColors } from "@/lib/esiti";
-import { Trash2, Users, Search } from "lucide-react";
+import { Trash2, Users, Search, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 
 const selectClass = "flex h-9 w-full max-w-[180px] rounded-xl border border-input bg-white/50 px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring";
+const thClass = "text-left p-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider";
+const thSortClass = "text-left p-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider cursor-pointer select-none hover:text-slate-700 transition-colors";
+
+type SortField = "data" | "pazienteName" | "modPagamento" | "esito" | "importo";
 
 export function PazientiList({
   patients,
@@ -20,6 +24,24 @@ export function PazientiList({
   const [search, setSearch] = useState("");
   const [sedeFilter, setSedeFilter] = useState("all");
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortField(field);
+      setSortDir("asc");
+    }
+  };
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) return <ArrowUpDown className="inline w-3 h-3 ml-1 opacity-30" />;
+    return sortDir === "asc"
+      ? <ArrowUp className="inline w-3 h-3 ml-1" />
+      : <ArrowDown className="inline w-3 h-3 ml-1" />;
+  };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Eliminare questo paziente?")) return;
@@ -31,15 +53,48 @@ export function PazientiList({
     } catch { window.location.reload(); }
   };
 
-  const filtered = patients.filter((p) => {
-    const matchSearch =
-      !search ||
-      p.pazienteName.toLowerCase().includes(search.toLowerCase()) ||
-      p.consulente?.name?.toLowerCase().includes(search.toLowerCase()) ||
-      p.medico?.name?.toLowerCase().includes(search.toLowerCase());
-    const matchSede = sedeFilter === "all" || p.sede?.name === sedeFilter;
-    return matchSearch && matchSede;
-  });
+  const filtered = useMemo(() => {
+    let list = patients.filter((p) => {
+      const matchSearch =
+        !search ||
+        p.pazienteName.toLowerCase().includes(search.toLowerCase()) ||
+        p.consulente?.name?.toLowerCase().includes(search.toLowerCase()) ||
+        p.medico?.name?.toLowerCase().includes(search.toLowerCase());
+      const matchSede = sedeFilter === "all" || p.sede?.name === sedeFilter;
+      return matchSearch && matchSede;
+    });
+    if (sortField) {
+      list = [...list].sort((a, b) => {
+        let va: any, vb: any;
+        switch (sortField) {
+          case "data":
+            va = new Date(a.data).getTime();
+            vb = new Date(b.data).getTime();
+            break;
+          case "pazienteName":
+            va = (a.pazienteName || "").toLowerCase();
+            vb = (b.pazienteName || "").toLowerCase();
+            break;
+          case "modPagamento":
+            va = (a.modPagamento?.name || "").toLowerCase();
+            vb = (b.modPagamento?.name || "").toLowerCase();
+            break;
+          case "esito":
+            va = (a.esito || "").toLowerCase();
+            vb = (b.esito || "").toLowerCase();
+            break;
+          case "importo":
+            va = a.importo ?? 0;
+            vb = b.importo ?? 0;
+            break;
+        }
+        if (va < vb) return sortDir === "asc" ? -1 : 1;
+        if (va > vb) return sortDir === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+    return list;
+  }, [patients, search, sedeFilter, sortField, sortDir]);
 
   return (
     <div className="space-y-4">
@@ -80,15 +135,16 @@ export function PazientiList({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-gradient-to-r from-slate-50 to-white">
-                <th className="text-left p-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">Data</th>
-                <th className="text-left p-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">Paziente</th>
-                <th className="text-left p-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">Consulente</th>
-                <th className="text-left p-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">Medico</th>
-                <th className="text-left p-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">Sede</th>
-                <th className="text-left p-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">Esito</th>
-                <th className="text-right p-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">Importo</th>
-                <th className="text-left p-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">Note</th>
-                <th className="text-left p-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">Azioni</th>
+                <th className={thSortClass} onClick={() => handleSort("data")}>Data <SortIcon field="data" /></th>
+                <th className={thSortClass} onClick={() => handleSort("pazienteName")}>Paziente <SortIcon field="pazienteName" /></th>
+                <th className={thClass}>Consulente</th>
+                <th className={thClass}>Medico</th>
+                <th className={thClass}>Sede</th>
+                <th className={thSortClass} onClick={() => handleSort("esito")}>Esito <SortIcon field="esito" /></th>
+                <th className={thSortClass} onClick={() => handleSort("modPagamento")}>Mod. Pagamento <SortIcon field="modPagamento" /></th>
+                <th className={`text-right p-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider cursor-pointer select-none hover:text-slate-700 transition-colors`} onClick={() => handleSort("importo")}>Importo <SortIcon field="importo" /></th>
+                <th className={thClass}>Note</th>
+                <th className={thClass}>Azioni</th>
               </tr>
             </thead>
             <tbody>
@@ -104,6 +160,7 @@ export function PazientiList({
                       {p.esito}
                     </span>
                   </td>
+                  <td className="p-3.5 text-slate-600">{p.modPagamento?.name || "-"}</td>
                   <td className="p-3.5 text-right font-medium text-slate-800">{p.importo ? `€ ${p.importo.toLocaleString()}` : "-"}</td>
                   <td className="p-3.5 max-w-[150px] truncate text-slate-500 text-sm" title={p.note || ""}>{p.note || "-"}</td>
                   <td className="p-3.5">
