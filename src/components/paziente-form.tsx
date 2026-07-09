@@ -42,6 +42,31 @@ interface PazienteFormProps {
   sedi?: { name: string; slug: string }[];
 }
 
+const SectionBox = ({ icon: Icon, title, children }: { icon: any; title: string; children: React.ReactNode }) => (
+  <div className="group bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden transition-all duration-500 hover:shadow-[0_0_24px_-4px_rgba(6,182,212,0.15)]">
+    <div className="flex items-center gap-2.5 px-5 py-3.5 bg-gradient-to-r from-sky-50 to-blue-50 border-b border-slate-100 transition-all duration-500 group-hover:from-cyan-50 group-hover:to-sky-50">
+      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-sm shadow-cyan-200/50 transition-all duration-500 group-hover:shadow-[0_0_16px_-2px_rgba(6,182,212,0.5)] group-hover:scale-110">
+        <Icon className="w-4 h-4 text-white" />
+      </div>
+      <h3 className="text-sm font-semibold text-slate-700 transition-colors duration-500 group-hover:text-cyan-700">{title}</h3>
+    </div>
+    <div className="p-5">{children}</div>
+  </div>
+);
+
+const FieldRow = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <div className={`grid grid-cols-1 md:grid-cols-2 gap-4${className ? " " + className : ""}`}>{children}</div>
+);
+
+const FieldGroup = ({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) => (
+  <div className="space-y-1.5">
+    <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+      {label} {required && <span className="text-red-400">*</span>}
+    </Label>
+    {children}
+  </div>
+);
+
 export function PazienteForm({ initialData, userSedeId, userRole, defaultMonth, defaultYear, defaultSedeSlug, defaultSedeName, customEsiti, sedi }: PazienteFormProps) {
   const router = useRouter();
 
